@@ -1,4 +1,4 @@
-import { useContract, useContractRead, useContractWrite, useAccount } from 'wagmi';
+import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { useState, useEffect } from 'react';
 
 // Contract ABI - you'll need to generate this from your compiled contract
@@ -58,25 +58,17 @@ const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // Replac
 
 export const useSecretHeartsContract = () => {
   const { address } = useAccount();
-  
-  const contract = useContract({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-  });
 
   return {
-    contract,
+    contractAddress: CONTRACT_ADDRESS,
+    contractABI: CONTRACT_ABI,
     address,
     isConnected: !!address,
   };
 };
 
 export const useCreateCause = () => {
-  const { write, isLoading, isSuccess, error } = useContractWrite({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: 'createCause',
-  });
+  const { writeContract, isPending, isSuccess, error } = useWriteContract();
 
   const createCause = async (
     name: string,
@@ -84,10 +76,13 @@ export const useCreateCause = () => {
     targetAmount: number,
     duration: number
   ) => {
-    if (!write) return;
+    if (!writeContract) return;
     
     try {
-      await write({
+      await writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'createCause',
         args: [name, description, targetAmount, duration],
       });
     } catch (err) {
@@ -97,28 +92,27 @@ export const useCreateCause = () => {
 
   return {
     createCause,
-    isLoading,
+    isLoading: isPending,
     isSuccess,
     error,
   };
 };
 
 export const useMakeDonation = () => {
-  const { write, isLoading, isSuccess, error } = useContractWrite({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: 'makePrivateDonation',
-  });
+  const { writeContract, isPending, isSuccess, error } = useWriteContract();
 
   const makeDonation = async (
     causeId: number,
     amount: string,
     inputProof: string
   ) => {
-    if (!write) return;
+    if (!writeContract) return;
     
     try {
-      await write({
+      await writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'makePrivateDonation',
         args: [causeId, amount, inputProof],
         value: BigInt(amount), // Convert to wei
       });
@@ -129,14 +123,14 @@ export const useMakeDonation = () => {
 
   return {
     makeDonation,
-    isLoading,
+    isLoading: isPending,
     isSuccess,
     error,
   };
 };
 
 export const useCauseInfo = (causeId: number) => {
-  const { data, isLoading, error } = useContractRead({
+  const { data, isLoading, error } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: 'getCauseInfo',
@@ -151,7 +145,7 @@ export const useCauseInfo = (causeId: number) => {
 };
 
 export const useCauseCount = () => {
-  const { data, isLoading, error } = useContractRead({
+  const { data, isLoading, error } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: 'getCauseCount',
