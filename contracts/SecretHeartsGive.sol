@@ -111,6 +111,37 @@ contract SecretHeartsGive is SepoliaConfig {
         return causeId;
     }
     
+    // Simplified createCause function for easy case creation (non-FHE version)
+    function createCauseSimple(
+        string memory _name,
+        string memory _description,
+        uint32 _targetAmount,
+        uint256 _duration
+    ) public returns (uint256) {
+        require(bytes(_name).length > 0, "Cause name cannot be empty");
+        require(_duration > 0, "Duration must be positive");
+        require(_targetAmount > 0, "Target amount must be positive");
+        
+        uint256 causeId = causeCounter++;
+        
+        causes[causeId] = CharityCause({
+            causeId: FHE.asEuint32(uint32(causeId)),
+            targetAmount: FHE.asEuint32(_targetAmount),
+            currentAmount: FHE.asEuint32(0),
+            donorCount: FHE.asEuint32(0),
+            isActive: true,
+            isVerified: false,
+            name: _name,
+            description: _description,
+            organizer: msg.sender,
+            startTime: block.timestamp,
+            endTime: block.timestamp + _duration
+        });
+        
+        emit CauseCreated(causeId, msg.sender, _name);
+        return causeId;
+    }
+    
     function makePrivateDonation(
         uint256 causeId,
         externalEuint32 amount,

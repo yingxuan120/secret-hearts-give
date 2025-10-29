@@ -22,6 +22,18 @@ const CONTRACT_ABI = [
   },
   {
     "inputs": [
+      {"internalType": "string", "name": "_name", "type": "string"},
+      {"internalType": "string", "name": "_description", "type": "string"},
+      {"internalType": "uint32", "name": "_targetAmount", "type": "uint32"},
+      {"internalType": "uint256", "name": "_duration", "type": "uint256"}
+    ],
+    "name": "createCauseSimple",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {"internalType": "uint256", "name": "causeId", "type": "uint256"},
       {"internalType": "bytes", "name": "amount", "type": "bytes"},
       {"internalType": "bytes", "name": "inputProof", "type": "bytes"}
@@ -108,6 +120,41 @@ export const useCreateCause = () => {
 
   return {
     createCause,
+    isLoading: isPending,
+    isSuccess,
+    error,
+  };
+};
+
+// Simple create cause without FHE encryption
+export const useCreateCauseSimple = () => {
+  const { writeContract, isPending, isSuccess, error } = useWriteContract();
+
+  const createCauseSimple = async (
+    name: string,
+    description: string,
+    targetAmount: number,
+    duration: number
+  ) => {
+    if (!writeContract) {
+      throw new Error('Missing writeContract');
+    }
+    
+    try {
+      await writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: 'createCauseSimple',
+        args: [name, description, targetAmount, duration],
+      });
+    } catch (err) {
+      console.error('Error creating cause:', err);
+      throw err;
+    }
+  };
+
+  return {
+    createCauseSimple,
     isLoading: isPending,
     isSuccess,
     error,

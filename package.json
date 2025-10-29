@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy:contract": "npx hardhat run scripts/deploy.cjs --network sepolia",
+    "init:sample": "npx hardhat run scripts/init-sample-causes.cjs --network sepolia",
     "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
