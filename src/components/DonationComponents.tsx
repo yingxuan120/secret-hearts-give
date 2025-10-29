@@ -4,6 +4,8 @@ import { Heart, Users, TrendingUp, Globe } from "lucide-react";
 import { DonatePrivatelyModal } from "@/components/DonationFlow";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
+import { useCauseCount, useAllCauses } from '@/hooks/useContract';
+import { useState, useEffect } from 'react';
 import heartIcon from "@/assets/heart-icon.png";
 
 const DonationCard = ({ 
@@ -60,21 +62,57 @@ const DonationCard = ({
 };
 
 const ImpactStats = () => {
+  const { causes, isLoading } = useAllCauses();
+  const [stats, setStats] = useState({
+    totalDonors: 0,
+    totalDonated: 0,
+    globalImpact: 0
+  });
+
+  useEffect(() => {
+    if (causes && causes.length > 0) {
+      const totalDonors = causes.reduce((sum, cause) => sum + (cause.donors || 0), 0);
+      const totalDonated = causes.reduce((sum, cause) => sum + (cause.raised || 0), 0);
+      const totalGoal = causes.reduce((sum, cause) => sum + (cause.goal || 0), 0);
+      const globalImpact = totalGoal > 0 ? Math.round((totalDonated / totalGoal) * 100) : 0;
+
+      setStats({
+        totalDonors,
+        totalDonated,
+        globalImpact
+      });
+    }
+  }, [causes]);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="text-center p-6 gradient-card rounded-lg shadow-gentle">
+            <div className="w-8 h-8 bg-muted animate-pulse rounded mx-auto mb-2"></div>
+            <div className="h-8 bg-muted animate-pulse rounded mb-2"></div>
+            <div className="h-4 bg-muted animate-pulse rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
       <div className="text-center p-6 gradient-card rounded-lg shadow-gentle">
         <Users className="w-8 h-8 text-heart-primary mx-auto mb-2" />
-        <p className="text-2xl font-bold text-foreground">2,847</p>
+        <p className="text-2xl font-bold text-foreground">{stats.totalDonors.toLocaleString()}</p>
         <p className="text-sm text-muted-foreground">Anonymous Donors</p>
       </div>
       <div className="text-center p-6 gradient-card rounded-lg shadow-gentle">
         <TrendingUp className="w-8 h-8 text-heart-primary mx-auto mb-2" />
-        <p className="text-2xl font-bold text-foreground">$1,247,892</p>
+        <p className="text-2xl font-bold text-foreground">${stats.totalDonated.toLocaleString()}</p>
         <p className="text-sm text-muted-foreground">Total Donated</p>
       </div>
       <div className="text-center p-6 gradient-card rounded-lg shadow-gentle">
         <Globe className="w-8 h-8 text-heart-primary mx-auto mb-2" />
-        <p className="text-2xl font-bold text-foreground">100%</p>
+        <p className="text-2xl font-bold text-foreground">{stats.globalImpact}%</p>
         <p className="text-sm text-muted-foreground">Global Impact</p>
       </div>
     </div>
@@ -113,4 +151,21 @@ const WalletConnect = () => {
   );
 };
 
-export { DonationCard, ImpactStats, WalletConnect };
+const WalletButton = () => {
+  const { isConnected, address } = useAccount();
+
+  return (
+    <div className="fixed top-4 right-4 z-50">
+      <ConnectButton />
+      {isConnected && (
+        <div className="mt-2 text-center">
+          <p className="text-xs text-muted-foreground">
+            {address?.slice(0, 6)}...{address?.slice(-4)}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export { DonationCard, ImpactStats, WalletConnect, WalletButton };

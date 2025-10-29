@@ -1,16 +1,47 @@
 import { Button } from "@/components/ui/button";
 import { HandHeart, Heart, Shield } from "lucide-react";
-import { DonationCard, ImpactStats, WalletConnect } from "@/components/DonationComponents";
+import { DonationCard, ImpactStats, WalletConnect, WalletButton } from "@/components/DonationComponents";
 import { HowItWorksModal, StartGivingModal } from "@/components/DonationFlow";
-import { sampleCausesData } from "@/utils/initCauses";
+import { useAllCauses } from "@/hooks/useContract";
 import heartIcon from "@/assets/heart-icon.png";
 
 const Index = () => {
-  // Use sample causes data from utils
-  const causes = sampleCausesData;
+  // Get causes from contract
+  const { causes, isLoading } = useAllCauses();
+  
+  // Fallback to sample data if no causes from contract
+  const displayCauses = causes && causes.length > 0 ? causes : [
+    {
+      id: 0,
+      title: "Clean Water Initiative",
+      description: "Providing clean drinking water to remote communities worldwide",
+      goal: 50000,
+      raised: 32847,
+      donors: 156
+    },
+    {
+      id: 1,
+      title: "Education for All",
+      description: "Supporting educational programs for underprivileged children",
+      goal: 75000,
+      raised: 48293,
+      donors: 203
+    },
+    {
+      id: 2,
+      title: "Emergency Relief Fund",
+      description: "Rapid response to natural disasters and humanitarian crises",
+      goal: 100000,
+      raised: 67841,
+      donors: 298
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Wallet Button - Fixed Top Right */}
+      <WalletButton />
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero opacity-5" />
@@ -68,12 +99,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Wallet Connection */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <WalletConnect />
-        </div>
-      </section>
+      {/* Wallet Connection - Removed from center, now in top right */}
 
       {/* Impact Stats */}
       <section className="py-8">
@@ -93,9 +119,24 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {causes.map((cause, index) => (
-              <DonationCard key={index} {...cause} causeId={cause.id} />
-            ))}
+            {isLoading ? (
+              // Loading skeleton
+              [1, 2, 3].map((i) => (
+                <div key={i} className="bg-card rounded-lg p-6 animate-pulse">
+                  <div className="h-6 bg-muted rounded mb-2"></div>
+                  <div className="h-4 bg-muted rounded mb-4"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted rounded"></div>
+                    <div className="h-2 bg-muted rounded"></div>
+                    <div className="h-4 bg-muted rounded"></div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              displayCauses.map((cause, index) => (
+                <DonationCard key={index} {...cause} causeId={cause.id} />
+              ))
+            )}
           </div>
         </div>
       </section>

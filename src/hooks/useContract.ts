@@ -194,7 +194,37 @@ export const useAllCauses = () => {
 
   useEffect(() => {
     const fetchCauses = async () => {
-      if (!causeCount) return;
+      if (!causeCount || Number(causeCount) === 0) {
+        // If no causes in contract, return sample data
+        setCauses([
+          {
+            id: 0,
+            title: "Clean Water Initiative",
+            description: "Providing clean drinking water to remote communities worldwide",
+            goal: 50000,
+            raised: 32847,
+            donors: 156
+          },
+          {
+            id: 1,
+            title: "Education for All",
+            description: "Supporting educational programs for underprivileged children",
+            goal: 75000,
+            raised: 48293,
+            donors: 203
+          },
+          {
+            id: 2,
+            title: "Emergency Relief Fund",
+            description: "Rapid response to natural disasters and humanitarian crises",
+            goal: 100000,
+            raised: 67841,
+            donors: 298
+          }
+        ]);
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       const causesData = [];
@@ -205,7 +235,16 @@ export const useAllCauses = () => {
           if (causeInfo) {
             causesData.push({
               id: i,
-              ...causeInfo,
+              title: causeInfo.name,
+              description: causeInfo.description,
+              goal: causeInfo.targetAmount || 0,
+              raised: causeInfo.currentAmount || 0,
+              donors: causeInfo.donorCount || 0,
+              isActive: causeInfo.isActive,
+              isVerified: causeInfo.isVerified,
+              organizer: causeInfo.organizer,
+              startTime: causeInfo.startTime,
+              endTime: causeInfo.endTime
             });
           }
         } catch (err) {
