@@ -74,13 +74,14 @@ const CONTRACT_ABI = [
     "inputs": [{"internalType": "uint256", "name": "causeId", "type": "uint256"}],
     "name": "getEncryptedCauseData",
     "outputs": [
-      {"internalType": "string", "name": "name", "type": "string"},
-      {"internalType": "string", "name": "description", "type": "string"},
-      {"internalType": "uint32", "name": "targetAmount", "type": "uint32"},
-      {"internalType": "uint32", "name": "currentAmount", "type": "uint32"},
-      {"internalType": "uint32", "name": "donorCount", "type": "uint32"},
+      {"internalType": "bytes", "name": "causeId_encrypted", "type": "bytes"},
+      {"internalType": "bytes", "name": "targetAmount", "type": "bytes"},
+      {"internalType": "bytes", "name": "currentAmount", "type": "bytes"},
+      {"internalType": "bytes", "name": "donorCount", "type": "bytes"},
       {"internalType": "bool", "name": "isActive", "type": "bool"},
       {"internalType": "bool", "name": "isVerified", "type": "bool"},
+      {"internalType": "string", "name": "name", "type": "string"},
+      {"internalType": "string", "name": "description", "type": "string"},
       {"internalType": "address", "name": "organizer", "type": "address"},
       {"internalType": "uint256", "name": "startTime", "type": "uint256"},
       {"internalType": "uint256", "name": "endTime", "type": "uint256"}
@@ -298,11 +299,11 @@ export const useAllCauses = () => {
       
       for (let i = 0; i < Number(causeCount); i++) {
         try {
-          // Use readContract directly instead of hook to avoid React Hooks rules violation
+          // Use getCauseInfo to get unencrypted data
           const causeData = await readContract(wagmiConfig, {
             address: CONTRACT_ADDRESS,
             abi: CONTRACT_ABI,
-            functionName: 'getEncryptedCauseData',
+            functionName: 'getCauseInfo',
             args: [i]
           });
           
