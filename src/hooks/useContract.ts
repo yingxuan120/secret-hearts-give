@@ -1,9 +1,11 @@
 import { useReadContract, useWriteContract, useAccount } from 'wagmi';
+import { readContract } from '@wagmi/core';
 import { useState, useEffect } from 'react';
 import { useZamaInstance } from './useZamaInstance';
 import { useEthersSigner } from './useEthersSigner';
 import { Contract } from 'ethers';
 import contractInfo from '../config/contract.json';
+import { wagmiConfig } from '../config/wagmi';
 
 // Contract ABI - updated for FHE support
 const CONTRACT_ABI = [
@@ -278,20 +280,27 @@ export const useAllCauses = () => {
       
       for (let i = 0; i < Number(causeCount); i++) {
         try {
-          const { causeInfo } = useCauseInfo(i);
-          if (causeInfo) {
+          // Use readContract directly instead of hook to avoid React Hooks rules violation
+          const causeData = await readContract(wagmiConfig, {
+            address: CONTRACT_ADDRESS,
+            abi: CONTRACT_ABI,
+            functionName: 'getEncryptedCauseData',
+            args: [i]
+          });
+          
+          if (causeData) {
             causesData.push({
               id: i,
-              title: causeInfo.name,
-              description: causeInfo.description,
-              goal: causeInfo.targetAmount || 0,
-              raised: causeInfo.currentAmount || 0,
-              donors: causeInfo.donorCount || 0,
-              isActive: causeInfo.isActive,
-              isVerified: causeInfo.isVerified,
-              organizer: causeInfo.organizer,
-              startTime: causeInfo.startTime,
-              endTime: causeInfo.endTime
+              title: causeData.name,
+              description: causeData.description,
+              goal: Number(causeData.targetAmount) || 0,
+              raised: Number(causeData.currentAmount) || 0,
+              donors: Number(causeData.donorCount) || 0,
+              isActive: causeData.isActive,
+              isVerified: causeData.isVerified,
+              organizer: causeData.organizer,
+              startTime: Number(causeData.startTime) * 1000, // Convert to milliseconds
+              endTime: Number(causeData.endTime) * 1000
             });
           }
         } catch (err) {
