@@ -1,14 +1,19 @@
 import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { useState, useEffect } from 'react';
+import { useZamaInstance } from './useZamaInstance';
+import { useEthersSigner } from './useEthersSigner';
+import { Contract } from 'ethers';
+import contractInfo from '../config/contract.json';
 
-// Contract ABI - you'll need to generate this from your compiled contract
+// Contract ABI - updated for FHE support
 const CONTRACT_ABI = [
   {
     "inputs": [
       {"internalType": "string", "name": "_name", "type": "string"},
       {"internalType": "string", "name": "_description", "type": "string"},
-      {"internalType": "uint256", "name": "_targetAmount", "type": "uint256"},
-      {"internalType": "uint256", "name": "_duration", "type": "uint256"}
+      {"internalType": "bytes", "name": "_targetAmount", "type": "bytes"},
+      {"internalType": "uint256", "name": "_duration", "type": "uint256"},
+      {"internalType": "bytes", "name": "inputProof", "type": "bytes"}
     ],
     "name": "createCause",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
@@ -53,8 +58,8 @@ const CONTRACT_ABI = [
   }
 ] as const;
 
-// Contract address - this should be set after deployment
-const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // Replace with actual address
+// Contract address - loaded from config
+const CONTRACT_ADDRESS = contractInfo.address as `0x${string}`;
 
 export const useSecretHeartsContract = () => {
   const { address } = useAccount();
@@ -69,6 +74,9 @@ export const useSecretHeartsContract = () => {
 
 export const useCreateCause = () => {
   const { writeContract, isPending, isSuccess, error } = useWriteContract();
+  const { instance } = useZamaInstance();
+  const { address } = useAccount();
+  const signerPromise = useEthersSigner();
 
   const createCause = async (
     name: string,
@@ -76,17 +84,25 @@ export const useCreateCause = () => {
     targetAmount: number,
     duration: number
   ) => {
-    if (!writeContract) return;
+    if (!writeContract || !instance || !address) {
+      throw new Error('Missing required dependencies');
+    }
     
     try {
+      // Create encrypted input for target amount
+      const input = instance.createEncryptedInput(CONTRACT_ADDRESS, address);
+      input.add32(targetAmount);
+      const encryptedInput = await input.encrypt();
+
       await writeContract({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'createCause',
-        args: [name, description, targetAmount, duration],
+        args: [name, description, encryptedInput.handles[0], duration, encryptedInput.inputProof],
       });
     } catch (err) {
       console.error('Error creating cause:', err);
+      throw err;
     }
   };
 
@@ -100,24 +116,37 @@ export const useCreateCause = () => {
 
 export const useMakeDonation = () => {
   const { writeContract, isPending, isSuccess, error } = useWriteContract();
+  const { instance } = useZamaInstance();
+  const { address } = useAccount();
+  const signerPromise = useEthersSigner();
 
   const makeDonation = async (
     causeId: number,
-    amount: string,
-    inputProof: string
+    amount: string
   ) => {
-    if (!writeContract) return;
+    if (!writeContract || !instance || !address) {
+      throw new Error('Missing required dependencies');
+    }
     
     try {
+      // Convert ETH amount to wei
+      const amountInWei = (parseFloat(amount) * 1e18).toString();
+      
+      // Create encrypted input for donation amount
+      const input = instance.createEncryptedInput(CONTRACT_ADDRESS, address);
+      input.add32(parseInt(amountInWei));
+      const encryptedInput = await input.encrypt();
+
       await writeContract({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'makePrivateDonation',
-        args: [causeId, amount, inputProof],
-        value: BigInt(amount), // Convert to wei
+        args: [causeId, encryptedInput.handles[0], encryptedInput.inputProof],
+        value: BigInt(amountInWei), // Send actual ETH
       });
     } catch (err) {
       console.error('Error making donation:', err);
+      throw err;
     }
   };
 
@@ -194,5 +223,61 @@ export const useAllCauses = () => {
   return {
     causes,
     isLoading,
+  };
+};
+
+// FHE Decryption hook
+export const useFHEDecryption = () => {
+  const { instance } = useZamaInstance();
+  const { address } = useAccount();
+  const signerPromise = useEthersSigner();
+  const [isDecrypting, setIsDecrypting] = useState(false);
+
+  const decryptEncryptedData = async (handles: string[], contractAddress: string) => {
+    if (!instance || !address || !signerPromise) {
+      throw new Error('Missing required dependencies for decryption');
+    }
+
+    setIsDecrypting(true);
+    try {
+      const keypair = instance.generateKeypair();
+      const pairs = handles.map(h => ({ handle: h, contractAddress }));
+      const start = Math.floor(Date.now() / 1000).toString();
+      const days = '10';
+
+      const eip712 = instance.createEIP712(keypair.publicKey, [contractAddress], start, days);
+      const signer = await signerPromise;
+      if (!signer) throw new Error('Signer unavailable');
+      
+      const signature = await signer.signTypedData(
+        eip712.domain,
+        { UserDecryptRequestVerification: eip712.types.UserDecryptRequestVerification },
+        eip712.message
+      );
+
+      const result = await instance.userDecrypt(
+        pairs,
+        keypair.privateKey,
+        keypair.publicKey,
+        signature.replace('0x', ''),
+        [contractAddress],
+        address,
+        start,
+        days
+      );
+
+      return result;
+    } catch (error) {
+      console.error('Decryption failed:', error);
+      throw error;
+    } finally {
+      setIsDecrypting(false);
+    }
+  };
+
+  return {
+    decryptEncryptedData,
+    isDecrypting,
+    canDecrypt: !!instance && !!address,
   };
 };

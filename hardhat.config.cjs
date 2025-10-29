@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("@fhevm/hardhat-plugin");
 require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -24,5 +25,8 @@ module.exports = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  fhevm: {
+    // FHE configuration
   },
 };

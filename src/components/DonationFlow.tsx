@@ -211,14 +211,8 @@ const DonatePrivatelyModal = ({
     setStep(2);
     
     try {
-      // Convert ETH to wei
-      const amountInWei = (parseFloat(donationAmount) * 1e18).toString();
-      
-      // For now, we'll use a placeholder for the FHE proof
-      // In a real implementation, you would generate this using FHE libraries
-      const inputProof = "0x"; // Placeholder
-      
-      await makeDonation(causeId, amountInWei, inputProof);
+      // Use the updated makeDonation function that handles FHE encryption internally
+      await makeDonation(causeId, donationAmount);
       
       if (isSuccess) {
         setStep(3);

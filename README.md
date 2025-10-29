@@ -1,217 +1,207 @@
-# 💖 Secret Hearts Give
+# Secret Hearts Give - Private Charity Platform
 
-> *Where compassion meets cryptography - Give from your heart, not for show*
+A privacy-first charitable donations platform using Fully Homomorphic Encryption (FHE) to protect donation amounts while maintaining transparency of collective impact.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yingxuan120/secret-hearts-give)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Built with ❤️](https://img.shields.io/badge/Built%20with-❤️-red.svg)](https://github.com/yingxuan120/secret-hearts-give)
+## 🚀 Features
 
-## 🌟 The Vision
-
-In a world where charity has become a performance, **Secret Hearts Give** brings back the true essence of giving. We believe that the most meaningful donations come from the heart, not from the desire to be seen.
-
-**Our Mission**: Enable genuine philanthropy through privacy-first donations using cutting-edge FHE (Fully Homomorphic Encryption) technology.
-
-## ✨ What Makes Us Different
-
-### 🔒 **Privacy-First Philosophy**
-- Your donation amounts are **never revealed publicly**
-- Only you know how much you gave
-- FHE encryption ensures mathematical privacy guarantees
-
-### 💝 **Heart-Centered Design**
-- Beautiful, intuitive interface that feels warm and welcoming
-- Focus on the cause, not the donor
-- Genuine impact tracking without social pressure
-
-### ⛓️ **Blockchain Transparency**
-- All transactions are recorded on-chain
-- Total impact is always visible
-- Smart contracts ensure funds reach their intended destinations
-
-### 🧠 **Advanced Cryptography**
-- Fully Homomorphic Encryption for sensitive data
-- Zero-knowledge proofs for privacy
-- Cutting-edge privacy-preserving technology
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+ 
-- A crypto wallet (MetaMask, WalletConnect, etc.)
-- Some testnet ETH for donations
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yingxuan120/secret-hearts-give.git
-
-# Navigate to the project
-cd secret-hearts-give
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-### Environment Setup
-
-Create a `.env.local` file:
-
-```env
-VITE_CHAIN_ID=11155111
-VITE_RPC_URL=https://sepolia.infura.io/v3/your-key
-VITE_WALLET_CONNECT_PROJECT_ID=your-project-id
-VITE_INFURA_API_KEY=your-infura-key
-```
+- **Privacy-First Donations**: Your donation amounts are encrypted using FHE and never revealed publicly
+- **Collective Impact Visibility**: See the total raised for each cause without exposing individual contributions
+- **Blockchain Transparency**: All transactions are recorded on-chain for accountability
+- **FHE Encryption**: Uses Zama's FHEVM for secure, encrypted computations
+- **Modern UI**: Built with React, TypeScript, and Tailwind CSS
 
 ## 🏗️ Architecture
 
-### Frontend Stack
-- **React 18** - Modern UI framework
-- **TypeScript** - Type-safe development
-- **Vite** - Lightning-fast build tool
-- **Tailwind CSS** - Utility-first styling
-- **shadcn/ui** - Beautiful component library
+### Smart Contract
+- **Contract Address**: `0x369e290dA6376e97367FbD10299fac5de06Fa725`
+- **Network**: Sepolia Testnet
+- **FHE Integration**: Uses `@fhevm/solidity` for encrypted data types
+- **Key Features**:
+  - Encrypted donation amounts (`euint32`)
+  - Encrypted cause targets and totals
+  - Encrypted donor counts
+  - Encrypted impact reports
 
-### Blockchain Integration
-- **Wagmi** - React hooks for Ethereum
-- **RainbowKit** - Wallet connection UI
-- **Viem** - TypeScript interface for Ethereum
-- **FHE** - Fully Homomorphic Encryption
+### Frontend
+- **Framework**: React + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Wallet Integration**: RainbowKit + Wagmi
+- **FHE Integration**: Custom hooks for FHEVM operations
 
-### Smart Contracts
-- **Solidity 0.8.24** - Smart contract language
-- **Hardhat** - Development framework
-- **Sepolia Testnet** - Testing environment
+## 🛠️ Technology Stack
+
+### Backend
+- **Solidity**: ^0.8.24
+- **Hardhat**: Development and deployment
+- **FHEVM**: Fully Homomorphic Encryption
+- **Ethers.js**: Ethereum interactions
+
+### Frontend
+- **React**: ^18.3.1
+- **TypeScript**: ^5.8.3
+- **Vite**: Build tool
+- **Wagmi**: Ethereum hooks
+- **RainbowKit**: Wallet connection
+- **Tailwind CSS**: Styling
+
+## 📦 Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yingxuan120/secret-hearts-give.git
+   cd secret-hearts-give
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. **Compile contracts**:
+   ```bash
+   npx hardhat compile
+   ```
+
+## 🚀 Deployment
+
+### Deploy to Sepolia Testnet
+
+1. **Configure environment variables**:
+   ```bash
+   SEPOLIA_RPC_URL=https://1rpc.io/sepolia
+   ETHERSCAN_API_KEY=your_etherscan_api_key
+   PRIVATE_KEY=your_private_key
+   ```
+
+2. **Deploy the contract**:
+   ```bash
+   npm run deploy:contract
+   ```
+
+3. **Update contract address**:
+   The deployment script automatically updates `src/config/contract.json` with the new contract address.
 
 ## 🔧 Development
 
-### Available Scripts
-
+### Start Development Server
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run deploy:contract  # Deploy smart contracts
+npm run dev
 ```
 
-### Smart Contract Development
-
+### Run Tests
 ```bash
-# Compile contracts
-npx hardhat compile
-
-# Run tests
 npx hardhat test
-
-# Deploy to Sepolia
-npm run deploy:contract
 ```
 
-## 🌐 Deployment
+### Test Contract Functions
+```bash
+npx hardhat run scripts/test-contract.cjs --network sepolia
+```
 
-### Vercel (Recommended)
+## 🔐 FHE Integration
 
-1. Fork this repository
-2. Connect to [Vercel](https://vercel.com)
-3. Import your fork
-4. Add environment variables
-5. Deploy! 🚀
+### Smart Contract FHE Types
+- `euint32`: Encrypted 32-bit integers for amounts and counts
+- `externalEuint32`: External encrypted data from frontend
+- `FHE.fromExternal()`: Convert external encrypted data to internal format
+- `FHE.add()`: Perform encrypted arithmetic operations
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+### Frontend FHE Operations
+- **Encryption**: Use `useZamaInstance` hook to create encrypted inputs
+- **Decryption**: Use `useFHEDecryption` hook to decrypt contract data
+- **Wallet Integration**: Automatic signature for decryption requests
 
-### Other Platforms
+### Example FHE Usage
+```typescript
+// Create encrypted donation
+const input = instance.createEncryptedInput(contractAddress, userAddress);
+input.add32(donationAmount);
+const encryptedInput = await input.encrypt();
 
-This is a standard Vite React app and can be deployed to:
-- Netlify
-- GitHub Pages
-- AWS Amplify
-- Any static hosting service
+// Submit to contract
+await contract.makePrivateDonation(
+  causeId,
+  encryptedInput.handles[0],
+  encryptedInput.inputProof
+);
+```
 
-## 💡 How It Works
+## 📊 Contract Functions
 
-### 1. **Connect Your Heart** 💖
-Connect your crypto wallet to start your charitable journey
+### Core Functions
+- `createCause()`: Create a new charitable cause with encrypted target amount
+- `makePrivateDonation()`: Make an encrypted donation to a cause
+- `submitImpactReport()`: Submit encrypted impact data
+- `verifyCause()`: Verify a cause (verifier only)
+- `withdrawFunds()`: Withdraw funds after cause completion
 
-### 2. **Choose Your Cause** 🎯
-Browse verified charitable causes that resonate with your values
+### View Functions
+- `getCauseInfo()`: Get cause information (encrypted amounts)
+- `getEncryptedCauseData()`: Get raw encrypted cause data
+- `getCauseCount()`: Get total number of causes
+- `getDonationCount()`: Get total number of donations
 
-### 3. **Donate Privately** 🔐
-Your donation amount is encrypted using FHE - only you know how much you gave
+## 🌐 Network Configuration
 
-### 4. **See Collective Impact** 🌍
-Watch the total impact grow while your individual contribution remains private
+### Sepolia Testnet
+- **RPC URL**: `https://1rpc.io/sepolia`
+- **Chain ID**: `11155111`
+- **Contract**: `0x369e290dA6376e97367FbD10299fac5de06Fa725`
 
-## 🔐 Privacy & Security
+## 🔒 Security Features
 
-### FHE Encryption
-- **Fully Homomorphic Encryption** ensures your donation amounts are never revealed
-- Mathematical privacy guarantees
-- Even the smart contract cannot see individual amounts
+1. **FHE Encryption**: All sensitive data encrypted using Zama's FHEVM
+2. **Access Control**: Role-based permissions (owner, verifier, treasury)
+3. **Input Validation**: Comprehensive parameter validation
+4. **Emergency Functions**: Pause/unpause capabilities
+5. **Audit Trail**: All operations logged via events
 
-### Blockchain Security
-- All transactions are recorded on Ethereum
-- Smart contracts are audited and verified
-- Funds are held in secure, transparent contracts
+## 📝 Environment Variables
 
-### Data Protection
-- No personal data collection
-- Wallet addresses are not linked to donation amounts
-- Complete anonymity for donors
+```bash
+# Network Configuration
+SEPOLIA_RPC_URL=https://1rpc.io/sepolia
+
+# API Keys
+ETHERSCAN_API_KEY=your_etherscan_api_key
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=your_wallet_connect_project_id
+
+# Private Key (for deployment)
+PRIVATE_KEY=your_private_key
+
+# Contract Address (auto-updated after deployment)
+CONTRACT_ADDRESS=0x369e290dA6376e97367FbD10299fac5de06Fa725
+```
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Here's how you can help:
-
-### Ways to Contribute
-- 🐛 **Bug Reports** - Found a bug? Let us know!
-- 💡 **Feature Requests** - Have an idea? We'd love to hear it!
-- 🔧 **Code Contributions** - Submit a pull request
-- 📖 **Documentation** - Help improve our docs
-- 🎨 **Design** - Help make our UI even more beautiful
-
-### Development Process
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- **Zama** - For FHE technology and inspiration
-- **Rainbow** - For beautiful wallet connection UI
-- **Vercel** - For amazing deployment platform
-- **Open Source Community** - For all the amazing tools we use
+- **Zama**: For FHEVM and FHE technology
+- **Hardhat**: For development framework
+- **RainbowKit**: For wallet integration
+- **shadcn/ui**: For UI components
 
 ## 📞 Support
 
-- 📧 **Email**: support@secretheartsgive.com
-- 💬 **Discord**: [Join our community](https://discord.gg/secretheartsgive)
-- 🐦 **Twitter**: [@SecretHeartsGive](https://twitter.com/secretheartsgive)
-- 📖 **Documentation**: [docs.secretheartsgive.com](https://docs.secretheartsgive.com)
-
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=yingxuan120/secret-hearts-give&type=Date)](https://star-history.com/#yingxuan120/secret-hearts-give&Date)
+For questions or support, please open an issue on GitHub or contact the development team.
 
 ---
 
-<div align="center">
-
-**Made with 💖 by the Secret Hearts Give team**
-
-*Give from your heart, not for show*
-
-[Website](https://secretheartsgive.com) • [Documentation](https://docs.secretheartsgive.com) • [Community](https://discord.gg/secretheartsgive)
-
-</div>
+**Note**: This is a demonstration project showcasing FHE integration in charitable giving. Always conduct thorough security audits before using in production.

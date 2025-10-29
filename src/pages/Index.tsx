@@ -2,35 +2,12 @@ import { Button } from "@/components/ui/button";
 import { HandHeart, Heart, Shield } from "lucide-react";
 import { DonationCard, ImpactStats, WalletConnect } from "@/components/DonationComponents";
 import { HowItWorksModal, StartGivingModal } from "@/components/DonationFlow";
+import { sampleCausesData } from "@/utils/initCauses";
 import heartIcon from "@/assets/heart-icon.png";
 
 const Index = () => {
-  const causes = [
-    {
-      id: 0,
-      title: "Clean Water Initiative",
-      description: "Providing clean drinking water to remote communities worldwide",
-      goal: 50000,
-      raised: 32847,
-      donors: 156
-    },
-    {
-      id: 1,
-      title: "Education for All",
-      description: "Supporting educational programs for underprivileged children",
-      goal: 75000,
-      raised: 48293,
-      donors: 203
-    },
-    {
-      id: 2,
-      title: "Emergency Relief Fund",
-      description: "Rapid response to natural disasters and humanitarian crises",
-      goal: 100000,
-      raised: 67841,
-      donors: 298
-    }
-  ];
+  // Use sample causes data from utils
+  const causes = sampleCausesData;
 
   return (
     <div className="min-h-screen bg-background">

@@ -81,18 +81,21 @@ contract SecretHeartsGive is SepoliaConfig {
     function createCause(
         string memory _name,
         string memory _description,
-        uint256 _targetAmount,
-        uint256 _duration
+        externalEuint32 _targetAmount,
+        uint256 _duration,
+        bytes calldata inputProof
     ) public returns (uint256) {
         require(bytes(_name).length > 0, "Cause name cannot be empty");
         require(_duration > 0, "Duration must be positive");
-        require(_targetAmount > 0, "Target amount must be positive");
         
         uint256 causeId = causeCounter++;
         
+        // Convert external encrypted target amount to internal euint32
+        euint32 encryptedTargetAmount = FHE.fromExternal(_targetAmount, inputProof);
+        
         causes[causeId] = CharityCause({
-            causeId: FHE.asEuint32(0), // Will be set properly later
-            targetAmount: FHE.asEuint32(0), // Will be set to actual value via FHE operations
+            causeId: FHE.asEuint32(uint32(causeId)),
+            targetAmount: encryptedTargetAmount,
             currentAmount: FHE.asEuint32(0),
             donorCount: FHE.asEuint32(0),
             isActive: true,
@@ -124,7 +127,7 @@ contract SecretHeartsGive is SepoliaConfig {
         euint32 internalAmount = FHE.fromExternal(amount, inputProof);
         
         donations[donationId] = PrivateDonation({
-            donationId: FHE.asEuint32(0), // Will be set properly later
+            donationId: FHE.asEuint32(uint32(donationId)),
             amount: internalAmount,
             donor: msg.sender,
             timestamp: block.timestamp,
@@ -159,7 +162,7 @@ contract SecretHeartsGive is SepoliaConfig {
         uint256 reportId = reportCounter++;
         
         impactReports[reportId] = ImpactReport({
-            reportId: FHE.asEuint32(0), // Will be set properly later
+            reportId: FHE.asEuint32(uint32(reportId)),
             beneficiariesReached: beneficiariesReached,
             fundsUtilized: fundsUtilized,
             isVerified: false,
@@ -303,6 +306,74 @@ contract SecretHeartsGive is SepoliaConfig {
     
     function getReportCount() public view returns (uint256) {
         return reportCounter;
+    }
+    
+    // FHE-specific functions for encrypted data access
+    function getEncryptedCauseData(uint256 causeId) public view returns (
+        euint32 causeId_encrypted,
+        euint32 targetAmount,
+        euint32 currentAmount,
+        euint32 donorCount,
+        bool isActive,
+        bool isVerified,
+        string memory name,
+        string memory description,
+        address organizer,
+        uint256 startTime,
+        uint256 endTime
+    ) {
+        CharityCause storage cause = causes[causeId];
+        return (
+            cause.causeId,
+            cause.targetAmount,
+            cause.currentAmount,
+            cause.donorCount,
+            cause.isActive,
+            cause.isVerified,
+            cause.name,
+            cause.description,
+            cause.organizer,
+            cause.startTime,
+            cause.endTime
+        );
+    }
+    
+    function getEncryptedDonationData(uint256 donationId) public view returns (
+        euint32 donationId_encrypted,
+        euint32 amount,
+        address donor,
+        uint256 timestamp,
+        bool isProcessed
+    ) {
+        PrivateDonation storage donation = donations[donationId];
+        return (
+            donation.donationId,
+            donation.amount,
+            donation.donor,
+            donation.timestamp,
+            donation.isProcessed
+        );
+    }
+    
+    function getEncryptedImpactReportData(uint256 reportId) public view returns (
+        euint32 reportId_encrypted,
+        euint32 beneficiariesReached,
+        euint32 fundsUtilized,
+        bool isVerified,
+        string memory reportHash,
+        address reporter,
+        uint256 timestamp
+    ) {
+        ImpactReport storage report = impactReports[reportId];
+        return (
+            report.reportId,
+            report.beneficiariesReached,
+            report.fundsUtilized,
+            report.isVerified,
+            report.reportHash,
+            report.reporter,
+            report.timestamp
+        );
     }
     
     // Emergency functions
