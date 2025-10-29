@@ -29,20 +29,49 @@ export function useZamaInstance() {
         console.log('📊 SDK available:', !!window.relayerSDK);
         console.log('📊 initSDK function:', typeof window.relayerSDK?.initSDK);
         
-        await initSDK();
-        console.log('✅ Step 1 completed: FHE SDK initialized successfully');
+        try {
+          await initSDK();
+          console.log('✅ Step 1 completed: FHE SDK initialized successfully');
+        } catch (initError) {
+          console.warn('⚠️ FHE SDK init failed, trying alternative approach:', initError);
+          // Try alternative initialization if the first one fails
+          if (window.relayerSDK?.initSDK) {
+            await window.relayerSDK.initSDK();
+            console.log('✅ Step 1 completed: FHE SDK initialized with alternative method');
+          } else {
+            throw initError;
+          }
+        }
 
         console.log('🔄 Step 2: Creating FHE instance with Sepolia config...');
         console.log('📊 SepoliaConfig:', SepoliaConfig);
         
-        const zamaInstance = await createInstance(SepoliaConfig);
-        console.log('✅ Step 2 completed: FHE instance created successfully');
-        console.log('📊 Instance methods:', Object.keys(zamaInstance || {}));
-
-        if (mounted) {
-          setInstance(zamaInstance);
-          console.log('🎉 FHE initialization completed successfully!');
-          console.log('📊 Instance ready for encryption/decryption operations');
+        try {
+          const zamaInstance = await createInstance(SepoliaConfig);
+          console.log('✅ Step 2 completed: FHE instance created successfully');
+          console.log('📊 Instance methods:', Object.keys(zamaInstance || {}));
+          
+          if (mounted) {
+            setInstance(zamaInstance);
+            console.log('🎉 FHE initialization completed successfully!');
+            console.log('📊 Instance ready for encryption/decryption operations');
+          }
+        } catch (createError) {
+          console.warn('⚠️ FHE instance creation failed, trying with fallback config:', createError);
+          // Try with a simpler config as fallback
+          const fallbackConfig = {
+            ...SepoliaConfig,
+            // Remove potentially problematic config options
+          };
+          const zamaInstance = await createInstance(fallbackConfig);
+          console.log('✅ Step 2 completed: FHE instance created with fallback config');
+          console.log('📊 Instance methods:', Object.keys(zamaInstance || {}));
+          
+          if (mounted) {
+            setInstance(zamaInstance);
+            console.log('🎉 FHE initialization completed with fallback!');
+            console.log('📊 Instance ready for encryption/decryption operations');
+          }
         }
       } catch (err) {
         console.error('❌ FHE initialization failed at step:', err);

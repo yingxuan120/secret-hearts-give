@@ -69,6 +69,24 @@ const CONTRACT_ABI = [
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "causeId", "type": "uint256"}],
+    "name": "getEncryptedCauseData",
+    "outputs": [
+      {"internalType": "string", "name": "name", "type": "string"},
+      {"internalType": "string", "name": "description", "type": "string"},
+      {"internalType": "uint32", "name": "targetAmount", "type": "uint32"},
+      {"internalType": "uint32", "name": "currentAmount", "type": "uint32"},
+      {"internalType": "uint32", "name": "donorCount", "type": "uint32"},
+      {"internalType": "bool", "name": "isActive", "type": "bool"},
+      {"internalType": "bool", "name": "isVerified", "type": "bool"},
+      {"internalType": "address", "name": "organizer", "type": "address"},
+      {"internalType": "uint256", "name": "startTime", "type": "uint256"},
+      {"internalType": "uint256", "name": "endTime", "type": "uint256"}
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ] as const;
 
