@@ -88,7 +88,7 @@ export const useCreateCause = () => {
   const { writeContract, isPending, isSuccess, error } = useWriteContract();
   const { instance } = useZamaInstance();
   const { address } = useAccount();
-  const signerPromise = useEthersSigner();
+  const { getSigner } = useEthersSigner();
 
   const createCause = async (
     name: string,
@@ -165,7 +165,7 @@ export const useMakeDonation = () => {
   const { writeContract, isPending, isSuccess, error } = useWriteContract();
   const { instance } = useZamaInstance();
   const { address } = useAccount();
-  const signerPromise = useEthersSigner();
+  const { getSigner } = useEthersSigner();
 
   const makeDonation = async (
     causeId: number,
@@ -316,11 +316,11 @@ export const useAllCauses = () => {
 export const useFHEDecryption = () => {
   const { instance } = useZamaInstance();
   const { address } = useAccount();
-  const signerPromise = useEthersSigner();
+  const { getSigner } = useEthersSigner();
   const [isDecrypting, setIsDecrypting] = useState(false);
 
   const decryptEncryptedData = async (handles: string[], contractAddress: string) => {
-    if (!instance || !address || !signerPromise) {
+    if (!instance || !address || !getSigner) {
       throw new Error('Missing required dependencies for decryption');
     }
 
@@ -332,7 +332,7 @@ export const useFHEDecryption = () => {
       const days = '10';
 
       const eip712 = instance.createEIP712(keypair.publicKey, [contractAddress], start, days);
-      const signer = await signerPromise;
+      const signer = await getSigner();
       if (!signer) throw new Error('Signer unavailable');
       
       const signature = await signer.signTypedData(

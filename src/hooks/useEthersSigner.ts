@@ -1,44 +1,25 @@
 import { useAccount, useWalletClient } from 'wagmi';
-import { useState } from 'react';
+import { BrowserProvider } from 'ethers';
+import { useCallback } from 'react';
 
 export function useEthersSigner() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const [signerPromise, setSignerPromise] = useState<Promise<any> | null>(null);
 
-  const getSigner = async () => {
-    if (!walletClient || !address) {
+  const getSigner = useCallback(async () => {
+    if (!walletClient) {
       throw new Error('Wallet not connected');
     }
 
-    // Convert viem wallet client to ethers signer
-    const { createWalletClient, custom } = await import('viem');
-    const { ethers } = await import('ethers');
-
-    // Create a custom transport for ethers compatibility
-    const transport = custom(walletClient.transport);
-    const viemClient = createWalletClient({
-      account: address as `0x${string}`,
-      transport,
-    });
-
-    // Convert to ethers provider and signer
-    const provider = new ethers.BrowserProvider(viemClient.transport as any);
-    const signer = await provider.getSigner(address);
-    
-    return signer;
-  };
-
-  const initializeSigner = () => {
-    const promise = getSigner();
-    setSignerPromise(promise);
-    return promise;
-  };
+    // 类型转换以解决兼容性问题
+    const provider = new BrowserProvider(walletClient as any);
+    return await provider.getSigner();
+  }, [walletClient]); // 依赖 walletClient，避免无限循环
 
   return {
-    signerPromise: signerPromise || initializeSigner(),
-    initializeSigner,
     address,
-    isConnected: !!address,
+    signer: walletClient,
+    isConnected: !!address && !!walletClient,
+    getSigner
   };
 }

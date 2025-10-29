@@ -1,58 +1,73 @@
 import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { createInstance, initSDK, SepoliaConfig } from '@zama-fhe/relayer-sdk/bundle';
 
 export function useZamaInstance() {
   const [instance, setInstance] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { address, isConnected } = useAccount();
 
   useEffect(() => {
-    const initializeInstance = async () => {
-      if (!isConnected || !address) {
-        setInstance(null);
-        return;
-      }
+    let mounted = true;
 
-      setIsLoading(true);
-      setError(null);
-
+    const initZama = async () => {
       try {
-        // Check if fhevm is available globally
-        const w = typeof window !== 'undefined' ? (window as any) : undefined;
-        if (w?.fhevm) {
-          // Initialize the SDK if needed
-          if (w.fhevm.initSDK) {
-            await w.fhevm.initSDK();
-          }
+        console.log('🚀 Starting FHE initialization process...');
+        setIsLoading(true);
+        setError(null);
 
-          // Create instance with Sepolia config
-          const config = { ...w.fhevm.SepoliaConfig };
-          if (w.ethereum) {
-            config.network = w.ethereum;
+        // 检查CDN脚本是否加载
+        if (typeof window !== 'undefined' && !window.relayerSDK) {
+          console.warn('⚠️ FHE SDK CDN script not loaded, waiting...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          if (!window.relayerSDK) {
+            throw new Error('FHE SDK CDN script not loaded. Please check network connection.');
           }
+        }
 
-          const fhevmInstance = await w.fhevm.createInstance(config);
-          setInstance(fhevmInstance);
-        } else {
-          throw new Error('FHEVM not available. Please ensure the FHEVM library is loaded.');
+        console.log('🔄 Step 1: Initializing FHE SDK...');
+        console.log('📊 SDK available:', !!window.relayerSDK);
+        console.log('📊 initSDK function:', typeof window.relayerSDK?.initSDK);
+        
+        await initSDK();
+        console.log('✅ Step 1 completed: FHE SDK initialized successfully');
+
+        console.log('🔄 Step 2: Creating FHE instance with Sepolia config...');
+        console.log('📊 SepoliaConfig:', SepoliaConfig);
+        
+        const zamaInstance = await createInstance(SepoliaConfig);
+        console.log('✅ Step 2 completed: FHE instance created successfully');
+        console.log('📊 Instance methods:', Object.keys(zamaInstance || {}));
+
+        if (mounted) {
+          setInstance(zamaInstance);
+          console.log('🎉 FHE initialization completed successfully!');
+          console.log('📊 Instance ready for encryption/decryption operations');
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize FHEVM';
-        setError(errorMessage);
-        console.error('Failed to initialize FHEVM:', err);
+        console.error('❌ FHE initialization failed at step:', err);
+        console.error('📊 Error details:', {
+          name: err?.name,
+          message: err?.message,
+          stack: err?.stack
+        });
+        
+        if (mounted) {
+          setError(`Failed to initialize encryption service: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    initializeInstance();
-  }, [isConnected, address]);
+    initZama();
 
-  return {
-    instance,
-    error,
-    isLoading,
-    isReady: !!instance && !error,
-  };
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return { instance, isLoading, error };
 }
