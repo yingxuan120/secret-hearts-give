@@ -5,6 +5,8 @@ import { useZamaInstance } from './useZamaInstance';
 import { useEthersSigner } from './useEthersSigner';
 import { Contract } from 'ethers';
 import { config } from '../config/env';
+import contractInfo from '../config/contract.json';
+import { waitForTransactionReceipt } from '@wagmi/core';
 import { wagmiConfig } from '../config/wagmi';
 
 // Contract ABI - updated for FHE support
@@ -91,8 +93,12 @@ const CONTRACT_ABI = [
   }
 ] as const;
 
-// Contract address - loaded from environment variable
-const CONTRACT_ADDRESS = (config.contractAddress || '0x0000000000000000000000000000000000000000') as `0x${string}`;
+// Contract address - prefer env, fallback to contract.json, else zero
+const CONTRACT_ADDRESS = (
+  (config.contractAddress as string) ||
+  (contractInfo?.address as string) ||
+  '0x0000000000000000000000000000000000000000'
+) as `0x${string}`;
 
 export const useSecretHeartsContract = () => {
   const { address } = useAccount();
@@ -195,6 +201,9 @@ export const useMakeDonation = () => {
     if (!writeContract || !instance || !address) {
       throw new Error('Missing required dependencies');
     }
+    if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '0x0000000000000000000000000000000000000000') {
+      throw new Error('Invalid contract address. Please set VITE_CONTRACT_ADDRESS.');
+    }
     
     try {
       // Convert ETH string to numeric amount (e.g. "0.123")
@@ -218,13 +227,25 @@ export const useMakeDonation = () => {
       input.add32(amountInMicroEth);
       const encryptedInput = await input.encrypt();
 
-      await writeContract({
+      console.log('[Donate] Calling contract', {
+        contract: CONTRACT_ADDRESS,
+        causeId,
+        amountEth,
+        amountInWei,
+        amountInMicroEth,
+      });
+
+      const hash = await writeContract({
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'makePrivateDonation',
         args: [causeId, encryptedInput.handles[0], encryptedInput.inputProof],
         value: BigInt(amountInWei), // 实际支付ETH
       });
+      console.log('[Donate] Tx submitted', hash);
+      // 等待交易回执，确保链上已执行
+      const receipt = await waitForTransactionReceipt(wagmiConfig, { hash });
+      console.log('[Donate] Tx mined', receipt);
     } catch (err) {
       console.error('Error making donation:', err);
       throw err;
