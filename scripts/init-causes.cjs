@@ -3,7 +3,9 @@ const { ethers } = require("hardhat");
 async function main() {
   console.log("Initializing Active Causes with FHE encryption...");
 
-  const contractAddress = "0xCbfaE5985376810C85554dFE3336093DA97187A4";
+  // Load contract address from config
+  const contractInfo = require("../src/config/contract.json");
+  const contractAddress = contractInfo.address;
   const SecretHeartsGive = await ethers.getContractFactory("SecretHeartsGive");
   const contract = SecretHeartsGive.attach(contractAddress);
 

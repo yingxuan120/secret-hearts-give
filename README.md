@@ -47,14 +47,14 @@ A privacy-first charitable donations platform using Fully Homomorphic Encryption
 ## 📦 Installation
 
 1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yingxuan120/secret-hearts-give.git
-   cd secret-hearts-give
+```bash
+git clone https://github.com/yingxuan120/secret-hearts-give.git
+cd secret-hearts-give
    ```
 
 2. **Install dependencies**:
    ```bash
-   npm install
+npm install
    ```
 
 3. **Set up environment variables**:
@@ -77,7 +77,7 @@ A privacy-first charitable donations platform using Fully Homomorphic Encryption
    SEPOLIA_RPC_URL=https://1rpc.io/sepolia
    ETHERSCAN_API_KEY=your_etherscan_api_key
    PRIVATE_KEY=your_private_key
-   ```
+```
 
 2. **Deploy the contract**:
    ```bash

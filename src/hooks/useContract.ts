@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useZamaInstance } from './useZamaInstance';
 import { useEthersSigner } from './useEthersSigner';
 import { Contract } from 'ethers';
-import contractInfo from '../config/contract.json';
+import { config } from '../config/env';
 import { wagmiConfig } from '../config/wagmi';
 
 // Contract ABI - updated for FHE support
@@ -51,9 +51,9 @@ const CONTRACT_ABI = [
     "outputs": [
       {"internalType": "string", "name": "name", "type": "string"},
       {"internalType": "string", "name": "description", "type": "string"},
-      {"internalType": "uint8", "name": "targetAmount", "type": "uint8"},
-      {"internalType": "uint8", "name": "currentAmount", "type": "uint8"},
-      {"internalType": "uint8", "name": "donorCount", "type": "uint8"},
+      {"internalType": "uint32", "name": "targetAmount", "type": "uint32"},
+      {"internalType": "uint32", "name": "currentAmount", "type": "uint32"},
+      {"internalType": "uint32", "name": "donorCount", "type": "uint32"},
       {"internalType": "bool", "name": "isActive", "type": "bool"},
       {"internalType": "bool", "name": "isVerified", "type": "bool"},
       {"internalType": "address", "name": "organizer", "type": "address"},
@@ -74,10 +74,10 @@ const CONTRACT_ABI = [
     "inputs": [{"internalType": "uint256", "name": "causeId", "type": "uint256"}],
     "name": "getEncryptedCauseData",
     "outputs": [
-      {"internalType": "bytes", "name": "causeId_encrypted", "type": "bytes"},
-      {"internalType": "bytes", "name": "targetAmount", "type": "bytes"},
-      {"internalType": "bytes", "name": "currentAmount", "type": "bytes"},
-      {"internalType": "bytes", "name": "donorCount", "type": "bytes"},
+      {"internalType": "uint32", "name": "causeId_encrypted", "type": "uint32"},
+      {"internalType": "uint32", "name": "targetAmount", "type": "uint32"},
+      {"internalType": "uint32", "name": "currentAmount", "type": "uint32"},
+      {"internalType": "uint32", "name": "donorCount", "type": "uint32"},
       {"internalType": "bool", "name": "isActive", "type": "bool"},
       {"internalType": "bool", "name": "isVerified", "type": "bool"},
       {"internalType": "string", "name": "name", "type": "string"},
@@ -91,8 +91,8 @@ const CONTRACT_ABI = [
   }
 ] as const;
 
-// Contract address - loaded from config
-const CONTRACT_ADDRESS = contractInfo.address as `0x${string}`;
+// Contract address - loaded from environment variable
+const CONTRACT_ADDRESS = (config.contractAddress || '0x0000000000000000000000000000000000000000') as `0x${string}`;
 
 export const useSecretHeartsContract = () => {
   const { address } = useAccount();
@@ -296,8 +296,9 @@ export const useAllCauses = () => {
       
       setIsLoading(true);
       const causesData = [];
+      const totalCauses = Number(causeCount);
       
-      for (let i = 0; i < Number(causeCount); i++) {
+      for (let i = 0; i < totalCauses; i++) {
         try {
           // Use getCauseInfo to get unencrypted data
           const causeData = await readContract(wagmiConfig, {
@@ -308,22 +309,36 @@ export const useAllCauses = () => {
           });
           
           if (causeData) {
-            causesData.push({
+            // Handle both object and array formats from viem
+            const name = causeData.name || causeData[0] || '';
+            const description = causeData.description || causeData[1] || '';
+            const targetAmount = causeData.targetAmount ?? (causeData[2] ?? 0);
+            const currentAmount = causeData.currentAmount ?? (causeData[3] ?? 0);
+            const donorCount = causeData.donorCount ?? (causeData[4] ?? 0);
+            const isActive = causeData.isActive ?? (causeData[5] ?? false);
+            const isVerified = causeData.isVerified ?? (causeData[6] ?? false);
+            const organizer = causeData.organizer || causeData[7] || '';
+            const startTime = causeData.startTime ?? (causeData[8] ?? 0n);
+            const endTime = causeData.endTime ?? (causeData[9] ?? 0n);
+            
+            const cause = {
               id: i,
-              title: causeData.name,
-              description: causeData.description,
-              goal: Number(causeData.targetAmount) || 0,
-              raised: Number(causeData.currentAmount) || 0,
-              donors: Number(causeData.donorCount) || 0,
-              isActive: causeData.isActive,
-              isVerified: causeData.isVerified,
-              organizer: causeData.organizer,
-              startTime: Number(causeData.startTime) * 1000, // Convert to milliseconds
-              endTime: Number(causeData.endTime) * 1000
-            });
+              title: name,
+              description: description,
+              goal: Number(targetAmount),
+              raised: Number(currentAmount),
+              donors: Number(donorCount),
+              isActive: Boolean(isActive),
+              isVerified: Boolean(isVerified),
+              organizer: String(organizer),
+              startTime: Number(startTime) * 1000,
+              endTime: Number(endTime) * 1000
+            };
+            
+            causesData.push(cause);
           }
         } catch (err) {
-          console.error(`Error fetching cause ${i}:`, err);
+          console.error(`❌ Error fetching cause ${i}:`, err);
         }
       }
       

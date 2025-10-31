@@ -138,7 +138,7 @@ const Index = () => {
               ))
             ) : (
               displayCauses.map((cause, index) => (
-                <DonationCard key={index} {...cause} causeId={cause.id} />
+              <DonationCard key={index} {...cause} causeId={cause.id} />
               ))
             )}
           </div>

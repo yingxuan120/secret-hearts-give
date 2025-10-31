@@ -8,10 +8,10 @@ contract SecretHeartsGive is SepoliaConfig {
     using FHE for *;
     
     struct CharityCause {
-        euint32 causeId;
-        euint32 targetAmount;
-        euint32 currentAmount;
-        euint32 donorCount;
+        uint32 causeId;
+        uint32 targetAmount;
+        uint32 currentAmount;
+        uint32 donorCount;
         bool isActive;
         bool isVerified;
         string name;
@@ -81,23 +81,20 @@ contract SecretHeartsGive is SepoliaConfig {
     function createCause(
         string memory _name,
         string memory _description,
-        externalEuint32 _targetAmount,
-        uint256 _duration,
-        bytes calldata inputProof
+        uint32 _targetAmount,
+        uint256 _duration
     ) public returns (uint256) {
         require(bytes(_name).length > 0, "Cause name cannot be empty");
         require(_duration > 0, "Duration must be positive");
+        require(_targetAmount > 0, "Target amount must be positive");
         
         uint256 causeId = causeCounter++;
         
-        // Convert external encrypted target amount to internal euint32
-        euint32 encryptedTargetAmount = FHE.fromExternal(_targetAmount, inputProof);
-        
         causes[causeId] = CharityCause({
-            causeId: FHE.asEuint32(uint32(causeId)),
-            targetAmount: encryptedTargetAmount,
-            currentAmount: FHE.asEuint32(0),
-            donorCount: FHE.asEuint32(0),
+            causeId: uint32(causeId),
+            targetAmount: _targetAmount,
+            currentAmount: 0,
+            donorCount: 0,
             isActive: true,
             isVerified: false,
             name: _name,
@@ -125,10 +122,10 @@ contract SecretHeartsGive is SepoliaConfig {
         uint256 causeId = causeCounter++;
         
         causes[causeId] = CharityCause({
-            causeId: FHE.asEuint32(uint32(causeId)),
-            targetAmount: FHE.asEuint32(_targetAmount),
-            currentAmount: FHE.asEuint32(0),
-            donorCount: FHE.asEuint32(0),
+            causeId: uint32(causeId),
+            targetAmount: _targetAmount,
+            currentAmount: 0,
+            donorCount: 0,
             isActive: true,
             isVerified: false,
             name: _name,
@@ -165,9 +162,9 @@ contract SecretHeartsGive is SepoliaConfig {
             isProcessed: false
         });
         
-        // Update cause totals
-        causes[causeId].currentAmount = FHE.add(causes[causeId].currentAmount, internalAmount);
-        causes[causeId].donorCount = FHE.add(causes[causeId].donorCount, FHE.asEuint32(1));
+        // Update cause totals (public values)
+        causes[causeId].currentAmount += uint32(msg.value / 1e18); // Convert wei to ETH for display
+        causes[causeId].donorCount += 1;
         
         // Track donations
         donorDonations[msg.sender].push(donationId);
@@ -253,9 +250,9 @@ contract SecretHeartsGive is SepoliaConfig {
     function getCauseInfo(uint256 causeId) public view returns (
         string memory name,
         string memory description,
-        uint8 targetAmount,
-        uint8 currentAmount,
-        uint8 donorCount,
+        uint32 targetAmount,
+        uint32 currentAmount,
+        uint32 donorCount,
         bool isActive,
         bool isVerified,
         address organizer,
@@ -266,9 +263,9 @@ contract SecretHeartsGive is SepoliaConfig {
         return (
             cause.name,
             cause.description,
-            0, // FHE.decrypt(cause.targetAmount) - will be decrypted off-chain
-            0, // FHE.decrypt(cause.currentAmount) - will be decrypted off-chain
-            0, // FHE.decrypt(cause.donorCount) - will be decrypted off-chain
+            cause.targetAmount,
+            cause.currentAmount,
+            cause.donorCount,
             cause.isActive,
             cause.isVerified,
             cause.organizer,
@@ -341,10 +338,10 @@ contract SecretHeartsGive is SepoliaConfig {
     
     // FHE-specific functions for encrypted data access
     function getEncryptedCauseData(uint256 causeId) public view returns (
-        euint32 causeId_encrypted,
-        euint32 targetAmount,
-        euint32 currentAmount,
-        euint32 donorCount,
+        uint32 causeId_encrypted,
+        uint32 targetAmount,
+        uint32 currentAmount,
+        uint32 donorCount,
         bool isActive,
         bool isVerified,
         string memory name,
