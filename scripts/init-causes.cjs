@@ -41,21 +41,12 @@ async function main() {
     console.log(`\nCreating cause ${i + 1}: ${cause.name}`);
     
     try {
-      // Note: In a real implementation, the targetAmount would be encrypted
-      // For this demo, we'll create a simple encrypted input
-      // In production, this would be done by the frontend using FHEVM
-      
-      // For now, we'll create a placeholder encrypted input
-      // This is a simplified version - in reality, you'd use FHEVM to encrypt
-      const mockEncryptedAmount = "0x" + "0".repeat(64); // Placeholder
-      const mockInputProof = "0x" + "0".repeat(64); // Placeholder
-      
-      const tx = await contract.createCause(
+      // Use createCauseSimple for easy case creation (no FHE encryption needed for creation)
+      const tx = await contract.createCauseSimple(
         cause.name,
         cause.description,
-        mockEncryptedAmount,
-        cause.duration,
-        mockInputProof
+        cause.targetAmount,
+        cause.duration
       );
       
       await tx.wait();
@@ -65,6 +56,9 @@ async function main() {
       
     } catch (error) {
       console.error(`❌ Failed to create cause "${cause.name}":`, error.message);
+      if (error.data) {
+        console.error(`   Error data:`, error.data);
+      }
     }
   }
 
@@ -76,8 +70,24 @@ async function main() {
   console.log("\n🎉 Active Causes initialization completed!");
   console.log("Contract Address:", contractAddress);
   console.log("Deployer Address:", deployer.address);
-  console.log("\n📋 Note: In production, target amounts would be encrypted using FHEVM");
-  console.log("This demo shows the structure - real encryption happens in the frontend");
+  
+  // Display all created causes
+  if (Number(causeCount) > 0) {
+    console.log("\n=== Created Causes Summary ===");
+    for (let i = 0; i < Number(causeCount); i++) {
+      try {
+        const causeInfo = await contract.getCauseInfo(i);
+        console.log(`\nCause ${i}:`);
+        console.log(`  Name: ${causeInfo.name}`);
+        console.log(`  Target: $${causeInfo.targetAmount}`);
+        console.log(`  Current: $${causeInfo.currentAmount}`);
+        console.log(`  Donors: ${causeInfo.donorCount}`);
+        console.log(`  Active: ${causeInfo.isActive}`);
+      } catch (err) {
+        console.error(`  Error fetching cause ${i}:`, err.message);
+      }
+    }
+  }
 }
 
 main()

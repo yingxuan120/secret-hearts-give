@@ -27,8 +27,13 @@ When deploying to Vercel, add these environment variables in **Settings → Envi
 VITE_CHAIN_ID=11155111
 VITE_RPC_URL=https://1rpc.io/sepolia
 VITE_WALLET_CONNECT_PROJECT_ID=e08e99d213c331aa0fd00f625de06e66
-VITE_CONTRACT_ADDRESS=<Your deployed Sepolia contract address>
+VITE_CONTRACT_ADDRESS=0x87bF4F81892344Abef0bC5773f794A1B098830D7
 ```
+
+**Current Deployed Contract:**
+- Address: `0x87bF4F81892344Abef0bC5773f794A1B098830D7`
+- Network: Sepolia Testnet
+- Status: ✅ Deployed and initialized with 3 Active Causes
 
 **Important:**
 - `VITE_CONTRACT_ADDRESS` should be set to your deployed Sepolia contract address
@@ -37,11 +42,10 @@ VITE_CONTRACT_ADDRESS=<Your deployed Sepolia contract address>
 
 ## 🚀 Deployment Steps
 
-1. **Deploy Contract to Sepolia**
-   ```bash
-   npm run deploy:contract
-   ```
-   Copy the deployed contract address
+1. **Contract Already Deployed** ✅
+   - Address: `0x87bF4F81892344Abef0bC5773f794A1B098830D7`
+   - Network: Sepolia Testnet
+   - Initialized with 3 Active Causes
 
 2. **Add Environment Variables in Vercel**
    - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
@@ -54,11 +58,9 @@ VITE_CONTRACT_ADDRESS=<Your deployed Sepolia contract address>
    - Vercel will automatically deploy
    - Or manually trigger deployment from Vercel dashboard
 
-4. **Initialize Causes (After Deployment)**
-   ```bash
-   npm run init:sample
-   ```
-   This will create sample causes on the deployed contract
+4. **Causes Already Initialized** ✅
+   - 3 Active Causes created on the contract
+   - No need to run initialization script again
 
 ## 📝 Notes
 
