@@ -226,19 +226,32 @@ export const useMakeDonation = () => {
       input.add32(amountInMicroEth);
       const encryptedInput = await input.encrypt();
 
+      const toHex = (v: any) => {
+        if (typeof v === 'string') return (v.startsWith('0x') ? v : `0x${v}`) as `0x${string}`;
+        if (v instanceof Uint8Array) return (`0x${Array.from(v).map((b) => b.toString(16).padStart(2, '0')).join('')}`) as `0x${string}`;
+        if (Array.isArray(v)) return (`0x${v.map((b: number) => Number(b).toString(16).padStart(2, '0')).join('')}`) as `0x${string}`;
+        if (typeof v === 'number' || typeof v === 'bigint') return (`0x${BigInt(v).toString(16)}`) as `0x${string}`;
+        throw new Error('Invalid bytes-like data for hex conversion');
+      };
+
+      const handle0 = toHex(encryptedInput.handles?.[0]);
+      const proof = toHex(encryptedInput.inputProof);
+
       console.log('[Donate] Calling contract', {
         contract: CONTRACT_ADDRESS,
         causeId,
         amountEth,
         amountInWei,
         amountInMicroEth,
+        handle0Type: typeof encryptedInput.handles?.[0],
+        proofType: typeof encryptedInput.inputProof,
       });
 
       const hash = await writeContractCore(wagmiConfig, {
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'makePrivateDonation',
-        args: [causeId, encryptedInput.handles[0], encryptedInput.inputProof],
+        args: [BigInt(causeId), handle0, proof],
         value: BigInt(amountInWei), // 实际支付ETH
       });
       console.log('[Donate] Tx submitted', hash);
