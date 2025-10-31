@@ -197,12 +197,25 @@ export const useMakeDonation = () => {
     }
     
     try {
-      // Convert ETH amount to wei
-      const amountInWei = (parseFloat(amount) * 1e18).toString();
-      
-      // Create encrypted input for donation amount
+      // Convert ETH string to numeric amount (e.g. "0.123")
+      const amountEth = parseFloat(amount);
+      if (!isFinite(amountEth) || amountEth <= 0) {
+        throw new Error('Invalid donation amount');
+      }
+
+      // 1) On-chain转账仍使用 Wei（不加密）
+      const amountInWei = (amountEth * 1e18).toString();
+
+      // 2) 加密部分仅存储“隐私金额”，采用 μETH 精度（1 ETH = 1,000,000 μETH）
+      // 这样数值 <= 4,294,967,295 时可放入 euint32，最多支持约 4,294 ETH
+      const amountInMicroEth = Math.round(amountEth * 1e6); // μETH
+      if (amountInMicroEth > 0xFFFFFFFF) {
+        throw new Error('Donation amount too large for encrypted 32-bit field');
+      }
+
+      // Create encrypted input for private amount (μETH)
       const input = instance.createEncryptedInput(CONTRACT_ADDRESS, address);
-      input.add32(parseInt(amountInWei));
+      input.add32(amountInMicroEth);
       const encryptedInput = await input.encrypt();
 
       await writeContract({
@@ -210,7 +223,7 @@ export const useMakeDonation = () => {
         abi: CONTRACT_ABI,
         functionName: 'makePrivateDonation',
         args: [causeId, encryptedInput.handles[0], encryptedInput.inputProof],
-        value: BigInt(amountInWei), // Send actual ETH
+        value: BigInt(amountInWei), // 实际支付ETH
       });
     } catch (err) {
       console.error('Error making donation:', err);
