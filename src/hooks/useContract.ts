@@ -1,12 +1,11 @@
 import { useReadContract, useWriteContract, useAccount } from 'wagmi';
-import { readContract } from '@wagmi/core';
+import { readContract, writeContract as writeContractCore, waitForTransactionReceipt } from '@wagmi/core';
 import { useState, useEffect } from 'react';
 import { useZamaInstance } from './useZamaInstance';
 import { useEthersSigner } from './useEthersSigner';
 import { Contract } from 'ethers';
 import { config } from '../config/env';
 import contractInfo from '../config/contract.json';
-import { waitForTransactionReceipt } from '@wagmi/core';
 import { wagmiConfig } from '../config/wagmi';
 
 // Contract ABI - updated for FHE support
@@ -235,7 +234,7 @@ export const useMakeDonation = () => {
         amountInMicroEth,
       });
 
-      const hash = await writeContract({
+      const hash = await writeContractCore(wagmiConfig, {
         address: CONTRACT_ADDRESS,
         abi: CONTRACT_ABI,
         functionName: 'makePrivateDonation',
