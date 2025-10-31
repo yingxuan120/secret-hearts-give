@@ -206,19 +206,24 @@ const DonatePrivatelyModal = ({
   const { makeDonation, isLoading, isSuccess, error } = useMakeDonation();
 
   const handleDonate = async () => {
-    if (!donationAmount) return;
-    
+    console.log('[Donate] Clicked', { causeId, donationAmount });
+    if (!donationAmount) {
+      console.warn('[Donate] No amount entered');
+      return;
+    }
+
     setStep(2);
-    
+
     try {
-      // Use the updated makeDonation function that handles FHE encryption internally
+      // 调用内部已处理FHE加密的捐赠函数
       await makeDonation(causeId, donationAmount);
-      
-      if (isSuccess) {
-        setStep(3);
-      }
+
+      // 简化处理：直接进入成功页，后续可接入交易回执等待
+      console.log('[Donate] Submitted successfully');
+      setStep(3);
     } catch (err) {
       console.error('Donation failed:', err);
+      alert(err instanceof Error ? err.message : 'Donation failed');
       setStep(1); // Reset to step 1 on error
     }
   };
@@ -279,7 +284,7 @@ const DonatePrivatelyModal = ({
               onClick={handleDonate} 
               className="w-full" 
               variant="donate"
-              disabled={!donationAmount}
+              disabled={!donationAmount || isLoading}
             >
               Donate {donationAmount} ETH Privately
             </Button>
